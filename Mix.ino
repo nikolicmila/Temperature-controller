@@ -2,21 +2,19 @@
 
 int procent;
 long int period;
-const byte Led=13;
 
-int val;
+const byte Led=13;
+int value;
 int tempPin = A0;
+float setTemp = 26;
+float celsius;
 
 int kp = 2 ;
-float setTemp;
-int val;
-int tempPin = A0;
 
 void setup(){
-  pinMode(Led, OUTPUT);
+  pinMode(Led, OUTPUT); 
   Serial.begin(9600);
   
-
   Timer1.attachInterrupt( timerIsr );
   period = 500 * 1000L;
   procent = 50;
@@ -41,6 +39,23 @@ void loop()
       break;
     }
   }
+  
+  value = analogRead(tempPin);
+  float midvalue = ( value/1024.0)*5000; 
+  celsius = midvalue/10;
+    celsius = constrain (celsius, -55, 150);
+  
+  /*Serial.println(cel); 
+  Serial.println(setTemp); 
+  Serial.println(kp); */
+  
+  double error = setTemp - celsius;
+  
+  if (error > 0){
+    double output = kp * error; 
+    procent = constrain(output,0,100);
+  }
+
   delay(500);
 }
 
@@ -55,17 +70,4 @@ void timerIsr(){
      Timer1.initialize(period-(period/100*procent));
      digitalWrite(13,LOW);
   }
-
-  float cel = constrain (cel, -55, 150);
-
-val = analogRead(tempPin);
-float mv = ( val/1024.0)*5000; 
-cel = mv/10;
-
-double error = setTemp - cel;
-double output = kp * error; 
-if (error > 0){
-  procent=procent+error;
-  delay(1000);
-}
 }
